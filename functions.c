@@ -84,7 +84,7 @@ float atan(float x) {
 	return polyterm(half(half(x, 1), 1), 1.0F, 0.5F) * 4.0F;
 }
 
-float circ(float x) {
+float rel(float x) {
 	return sqrt(1.0F - square(x));
 }
 
@@ -94,6 +94,10 @@ float exp(float x) {
 
 float qfn(float x) {
 	return polyterm(x, 0.5F, 0.0F);
+}
+
+float pfn(float x) {
+	return polyterm(x, 0.5F, 0.5F);
 }
 
 float ein(float x) {
@@ -111,7 +115,7 @@ float halfs(float x) {
 }
 
 float halfc(float x) {
-	return circ(x) * inv(x + 1);
+	return rel(x) * inv(x + 1);
 }
 //on logs
 float asin(float x) {
@@ -134,10 +138,6 @@ float tan(float x) {
 	return sin(x) * inv(cos(x));
 }
 
-float entropy(float x) {
-	return x * log(inv(x)) * 1.44269504089F;//base 2
-}
-
 //TODO:Add gamma iterate
 
 
@@ -149,14 +149,14 @@ name("ACS", acos),
 name("ASN", asin),
 name("ATN", atan),
 name("COS", cos),
-name("REL", circ),
+name("REL", rel),
 name("EIN", ein),
-name("ENT", entropy),
 name("EXP", exp),
 name("INV", inv),
 name("IRT", irt),
 name("LIN", lin),
 name("LOG", log),
+name("PFN", pfn),
 name("QFN", qfn),
 name("SIN", sin),
 name("SQR", sqrt),
