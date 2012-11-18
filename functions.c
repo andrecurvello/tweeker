@@ -138,8 +138,20 @@ float tan(float x) {
 	return sin(x) * inv(cos(x));
 }
 
-//TODO:Add gamma iterate
+float giter(float x, float p, float q) {
+	float acc = 0.0F;
+	float harm;
+	u16 start;
+	for(start = 1; start < 64; start ++) {
+		harm = x * inv((float)start);
+		acc += harm - polyterm(harm, p, q);
+        };
+	return acc;
+}
 
+float factorial(float x) {
+	return exp(giter(x, 1.0F, 1.0F) + 0.5772156649F * x);//good estimate of fractional gamma based factorial
+}
 
 //TODO:add function table of names and fnptr
 struct token tokens[] = {
