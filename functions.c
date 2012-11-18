@@ -3,8 +3,6 @@
 
 #define name(x,fn)	{&x,fn}
 
-//TODO: use symetries for speed, and signed integers
-
 float square(float x) {
 	return x * x;
 }
@@ -22,7 +20,7 @@ float irt(float x) {
         float x2;
         const float threehalfs = 1.5F;
 	x2 = x * 0.5F;
-        i  = * ( long * ) &x;                       // evil floating point bit level hacking
+        i  = * ( u32 * ) &x;                       // evil floating point bit level hacking
         i  = 0x5f3759df - ( i >> 1 );
         x  = * ( float * ) &i;
 	for(i = 0; i < 4; i++)
@@ -40,40 +38,50 @@ float sqrt(float x) {
 }
 
 float half(float x, s8 sgn) {		/* x/(1+sqrt(1+x*x)) */
-	return x * inv(1.0F + sqrt(1.0F + (sgn > 1? square(x) : -square(x))));
+	return x * inv(1.0F + sqrt(1.0F + (sgn > 0 ? square(x) : -square(x))));
 }
 
 float halfa(float x) {
 	return half(x, 1);
 }
 
-//TODO:make using 3 param generator.
+//cosine estimate 0 to pi = 0 to 1
+float cost(float x) {
+	s32 y = (s32)x;
+	x -= (float)y;
+	return (1.0F - 2.0F * x) * (x & 1 == 0 ? 1.0F : -1.0F);//triangle
+}
 
-float eq(float x, s8 over, s8 sq, s8 alt, s8 fact) { //base e exponential and Q+
-	float acc = 0;
-	float lacc;
-	float mul = x;
-	float harm = 1;
-	u16 start = 1;
-	if(sq != 0) x = square(x);
-	x = (alt != 0 ? -x : x);
-	do {
-		lacc = acc;
-		acc += mul * (over == 0 ? 1.0F : harm);
-		start += sq + 1;
+//p and q range 0 to 1
+float polyterm(float x, float p, float q) {
+	float acc = 0.0F;
+	float mul = 1.0F;
+	float harm;
+	float corr;
+	u16 start;
+	for(start = 1; start < 64; start ++) {
 		harm = inv((float)start);
-		mul *= x * (fact == 0 ? 1.0F : harm * (sq == 0 ? 1.0F : inv(start - 1)));
-        } while(lacc != acc && start < 200);//term limit
+		//p as over fact(n) to n
+		corr = 4.0F * p * (1.0F - p);//p correction (symmetric)
+		mul *= x * (p + (1.0F - p) * harm + corr * ((1.0F - p) * harm - p)));
+		acc += mul * ((1.0F - p) + p * harm + corr * (p * harm - (1.0F - p))) * cost(q * ((float)start - 1.0F));
+        };
 	return acc;
 }
 
 float log(float x) { //base e
-	x = irt(irt(irt(x)));//symetry and double triple roots
-	return -eq((x-1.0F) * inv(x+1.0F), 1, 1, 0, 0) * 16.0F;
+	float sign = 0.0F;
+	if(x == 1.0F) return 0.0F;
+	if(x > 1.0F) {
+		x = irt(x);
+		sign = 1.0F;
+	}
+	x = irt(irt(irt(irt(x))));//symmetry and double roots
+	return polyterm((x-1.0F), 1.0F, 1.0F) * (16.0F + sign);
 }
 
 float atan(float x) {
-	return eq(half(half(x, 1), 1), 1, 1, 1, 0) * 4.0F;
+	return polyterm(half(half(x, 1), 1), 1.0F, 0.5F) * 4.0F;
 }
 
 float circ(float x) {
@@ -81,15 +89,11 @@ float circ(float x) {
 }
 
 float exp(float x) {
-	return eq(x, 0, 0, 0, 1) + 1.0F;
+	return polyterm(x, 0.0F, 0.0F) + 1.0F;
 }
 
 float qfn(float x) {
-	return eq(x, 1, 0, 0, 1);
-}
-
-float invw(float x) {
-	return x * exp(x);
+	return polyterm(x, 0.5F, 0.0F);
 }
 
 float ein(float x) {
@@ -119,7 +123,7 @@ float acos(float x) {
 }
 //on exps
 float sin(float x) {
-	return eq(x, 0, 1, 1, 1);
+	return polyterm(x, 0.0F, 0.5F);
 }
 
 float cos(float x) {
@@ -136,10 +140,30 @@ float entropy(float x) {
 
 //TODO:Add gamma iterate
 
+
 //TODO:add function table of names and fnptr
 struct token tokens[] = {
 //name definitions
+//basic 16 functions
+name("ACS", acos),
+name("ASN", asin),
+name("ATN", atan),
 name("COS", cos),
-name("SIN", sin)
+name("REL", circ),
+name("EIN", ein),
+name("ENT", entropy),
+name("EXP", exp),
+name("INV", inv),
+name("IRT", irt),
+name("LIN", lin),
+name("LOG", log),
+name("QFN", qfn),
+name("SIN", sin),
+name("SQR", sqrt),
+name("TAN", tan)
+//next 16 functions
+
 //end name definitions
 };
+
+//TODO:add group definitions
