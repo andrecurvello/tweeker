@@ -115,7 +115,7 @@ float halfs(float x) {
 }
 
 float halfc(float x) {
-	return rel(x) * inv(x + 1);
+	return rel(x) * inv(x + 1.0F);
 }
 //on logs
 float asin(float x) {
@@ -146,11 +146,11 @@ float giter(float x, float p, float q) {
 		harm = x * inv((float)start);
 		acc += harm - polyterm(harm, p, q);
         };
-	return acc;
+	return polyterm(acc, 1.0F - p, 1.0F - q);
 }
 
 float factorial(float x) {
-	return exp(giter(x, 1.0F, 1.0F) + 0.5772156649F * x);//good estimate of fractional gamma based factorial
+	return (giter(x, 1.0F, 1.0F) + 1.0F) * exp(0.5772156649F * x);//good estimate of fractional gamma based factorial
 }
 
 //TODO:add function table of names and fnptr
