@@ -8,6 +8,6 @@
 #ifndef HARDWARE_H_
 #define HARDWARE_H_
 
-
+extern u8 mul(u8 x, u8 y);
 
 #endif /* HARDWARE_H_ */
