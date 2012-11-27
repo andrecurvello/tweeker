@@ -16,5 +16,6 @@ The control pair can be switched between the following pairs of controls. No fur
   * PENV FENV
   * WOBBLE TICK
   * note number and value for pattern
-  * OVER EVEN
+  * VERGE EVENS
+  * LOGID EXPID
   * GENRIC SPREAD
